@@ -1647,6 +1647,91 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <script>
+// Основной объект приложения
+const PirateApp = (function() {
+  // Приватные методы
+  function getUserData() {
+    try {
+      return window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe 
+        ? Telegram.WebApp.initDataUnsafe.user 
+        : {};
+    } catch (e) {
+      console.error('Telegram API error:', e);
+      return {};
+    }
+  }
+
+  function getUserName(userData) {
+    return userData.username 
+      ? '@' + userData.username 
+      : userData.first_name || 'Пират';
+  }
+
+  function getAvatarUrl(userData) {
+    if (userData.photo_url) return userData.photo_url;
+    
+    const firstChar = userData.first_name ? userData.first_name[0] : 'P';
+    const lastChar = userData.last_name ? userData.last_name[0] : '';
+    const colors = ['FF5733', '33FF57', '3357FF', 'F333FF', '33FFF3'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    return 'https://ui-avatars.com/api/?name=' + 
+           encodeURIComponent(firstChar + lastChar) + 
+           '&background=' + color + '&color=fff&size=128';
+  }
+
+  // Публичные методы
+  return {
+    init: function() {
+      if (this.isTelegramWebApp()) {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+      }
+      this.setupUserData();
+    },
+
+    isTelegramWebApp: function() {
+      return !!(window.Telegram && Telegram.WebApp);
+    },
+
+    setupUserData: function() {
+      const userData = getUserData();
+      const userName = getUserName(userData);
+      const avatarUrl = getAvatarUrl(userData);
+
+      // Установка имени
+      const nameElements = document.querySelectorAll('#username, .profile-name');
+      nameElements.forEach(function(el) {
+        if (el) el.textContent = userName;
+      });
+
+      // Установка аватарки
+      const avatarElements = document.querySelectorAll('#avatar img, #profile-avatar');
+      avatarElements.forEach(function(img) {
+        if (img) {
+          img.src = avatarUrl || 'https://i.postimg.cc/8zJ7JQ7Z/default-avatar.png';
+          img.alt = userName;
+        }
+      });
+
+      // Установка даты
+      const joinDateEl = document.getElementById('join-date');
+      if (joinDateEl) {
+        joinDateEl.textContent = new Date().toLocaleDateString('ru-RU', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+    }
+  };
+})();
+
+// Инициализация после загрузки страницы
+document.addEventListener('DOMContentLoaded', function() {
+  PirateApp.init();
+});
+
 // Вызываем функцию при загрузке
 document.addEventListener('DOMContentLoaded', setupUserData);
 
