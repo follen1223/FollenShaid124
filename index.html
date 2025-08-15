@@ -1989,64 +1989,115 @@ document.querySelector('a[href*="d339d82edd45176b"] button').addEventListener('c
 });
   </script>
 <script>
-  // =============================================
-  // ТЕЛЕГРАМ WEBAPP ИНИЦИАЛИЗАЦИЯ
-  // =============================================
+// ==================== ОТЛАДКА ====================
+console.log("Скрипт запущен"); // Проверка загрузки скрипта
+
+// ==================== ТЕЛЕГРАМ ФУНКЦИИ ====================
+function isTelegramWebApp() {
+  const isWebApp = !!(window.Telegram && Telegram.WebApp);
+  console.log("Проверка Telegram WebApp:", isWebApp);
+  return isWebApp;
+}
+
+function getUserData() {
+  if (!isTelegramWebApp()) {
+    console.log("Не в Telegram WebApp");
+    return null;
+  }
   
-  // Основная функция инициализации
-  function initTelegramUser() {
-    // 1. Проверяем, что мы в Telegram WebApp
-    if (!window.Telegram?.WebApp) {
-      console.log("Не в Telegram WebApp - используем тестовые данные");
-      return;
-    }
-    
-    // 2. Получаем данные пользователя
+  try {
     const user = Telegram.WebApp.initDataUnsafe?.user;
-    if (!user) {
-      console.log("Данные пользователя недоступны");
-      return;
-    }
-    
-    // 3. Разворачиваем приложение на весь экран
-    Telegram.WebApp.expand();
-    
-    // 4. Обновляем интерфейс
-    updateUserData(user);
+    console.log("Данные пользователя:", user);
+    return user;
+  } catch (e) {
+    console.error("Ошибка получения данных:", e);
+    return null;
+  }
+}
+
+function updateUI(user) {
+  if (!user) {
+    console.log("Нет данных пользователя для обновления UI");
+    return;
   }
 
-  // Функция обновления данных пользователя
-  function updateUserData(user) {
-    // Формируем имя для отображения
-    const displayName = user.username 
-      ? @${user.username} 
-      : user.first_name || "Пират";
-    
-    // Обновляем имя в каюте
-    const usernameElement = document.getElementById('username');
-    if (usernameElement) usernameElement.textContent = displayName;
-    
-    // Обновляем имя в профиле
-    const profileNameElement = document.getElementById('profile-name');
-    if (profileNameElement) profileNameElement.textContent = displayName;
-    
-    // Обновляем аватар (если есть)
-    if (user.photo_url) {
-      // В каюте
-      const cabinAvatar = document.querySelector('#avatar img');
-      if (cabinAvatar) cabinAvatar.src = user.photo_url;
-      
-      // В профиле
-      const profileAvatar = document.getElementById('profile-avatar');
-      if (profileAvatar) profileAvatar.src = user.photo_url;
+  // 1. Обновляем имя
+  const username = user.username ? @${user.username} : user.first_name || "Пират";
+  console.log("Устанавливаем имя:", username);
+
+  // Каюта
+  const cabinUsername = document.getElementById('username');
+  if (cabinUsername) {
+    cabinUsername.textContent = username;
+    console.log("Имя в каюте обновлено");
+  } else {
+    console.error("Элемент #username не найден");
+  }
+
+  // Профиль
+  const profileName = document.getElementById('profile-name');
+  if (profileName) {
+    profileName.textContent = username;
+    console.log("Имя в профиле обновлено");
+  } else {
+    console.error("Элемент #profile-name не найден");
+  }
+
+  // 2. Обновляем аватар
+  if (user.photo_url) {
+    console.log("Обновляем аватар с URL:", user.photo_url);
+
+    // Каюта
+    const cabinAvatar = document.querySelector('#avatar img');
+    if (cabinAvatar) {
+      cabinAvatar.src = user.photo_url;
+      console.log("Аватар в каюте обновлён");
+    } else {
+      console.error("Аватар каюты (#avatar img) не найден");
+    }
+
+    // Профиль
+    const profileAvatar = document.getElementById('profile-avatar');
+    if (profileAvatar) {
+      profileAvatar.src = user.photo_url;
+      console.log("Аватар профиля обновлён");
+    } else {
+      console.error("Аватар профиля (#profile-avatar) не найден");
+    }
+  }
+}
+
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+function initApp() {
+  console.log("Инициализация приложения...");
+  
+  if (isTelegramWebApp()) {
+    try {
+      Telegram.WebApp.expand();
+      console.log("WebApp развёрнут на весь экран");
+    } catch (e) {
+      console.error("Ошибка развёртывания:", e);
     }
   }
 
-  // Запускаем при полной загрузке страницы
-  document.addEventListener('DOMContentLoaded', function() {
-    // Даем Telegram WebApp время на инициализацию
-    setTimeout(initTelegramUser, 200);
-  });
+  // Даём время на инициализацию WebApp
+  setTimeout(() => {
+    const user = getUserData();
+    updateUI(user);
+  }, 300);
+}
+
+// Запускаем приложение
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("DOM полностью загружен");
+  initApp();
+});
+
+// Альтернативный запуск для SPA
+if (document.readyState === 'complete') {
+  console.log("Страница уже загружена");
+  initApp();
+}
 </script>
 </body>
 </html>
