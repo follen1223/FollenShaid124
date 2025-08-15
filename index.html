@@ -1646,6 +1646,9 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+<!-- Ваш существующий код -->
+<script src="telegram-user.js"></script>
+
   <script>
 // Вызываем функцию при загрузке
 document.addEventListener('DOMContentLoaded', setupUserData);
@@ -1984,45 +1987,34 @@ document.querySelector('a[href*="d339d82edd45176b"] button').addEventListener('c
   document.getElementById('cabinet-page').style.display = 'none';
   triggerVibration();
 });
-
-// Минимальный код для получения данных пользователя из Telegram
-document.addEventListener('DOMContentLoaded', function() {
-  // Функция для безопасного получения данных пользователя
-  function getTelegramUser() {
-    try {
-      // Проверяем, есть ли Telegram WebApp API
-      if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
-        return Telegram.WebApp.initDataUnsafe.user || {};
-      }
-      return {};
-    } catch (e) {
-      console.log('Не удалось получить данные из Telegram:', e);
-      return {};
-    }
-  }
-
-  // Получаем данные пользователя
-  const user = getTelegramUser();
-  
-  // Устанавливаем имя пользователя (если есть)
-  if (user.first_name || user.username) {
-    const userName = user.username ? '@' + user.username : user.first_name;
-    
-    // Находим все элементы для имени и устанавливаем значение
-    const nameElements = document.querySelectorAll('#username, .profile-name');
-    nameElements.forEach(function(el) {
-      if (el) el.textContent = userName;
-    });
-  }
-
-  // Устанавливаем аватар (если есть)
-  if (user.photo_url) {
-    const avatarElements = document.querySelectorAll('#avatar img, #profile-avatar');
-    avatarElements.forEach(function(img) {
-      if (img) img.src = user.photo_url;
-    });
-  }
-});
   </script>
+  <script>
+// Telegram WebApp Integration
+(function() {
+  // Проверяем, что мы в Telegram WebApp
+  if (!window.Telegram?.WebApp?.initDataUnsafe?.user) return;
+  
+  const user = Telegram.WebApp.initDataUnsafe.user;
+  
+  // Функция для безопасного обновления данных
+  function updateElement(selector, value, attribute = 'textContent') {
+    const element = document.querySelector(selector);
+    if (element) element[attribute] = value;
+  }
+
+  // Обновляем имя пользователя
+  if (user.first_name || user.username) {
+    const username = user.username ? '@' + user.username : user.first_name;
+    updateElement('#username', username);
+    updateElement('.profile-name', username);
+  }
+
+  // Обновляем аватар
+  if (user.photo_url) {
+    updateElement('#avatar img', user.photo_url, 'src');
+    updateElement('#profile-avatar', user.photo_url, 'src');
+  }
+})();
+</script>
 </body>
 </html>
